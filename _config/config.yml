@@ -1,0 +1,7 @@
+---
+Name: export-all-from-modeladmin
+---
+
+SilverStripe\Admin\ModelAdmin:
+  extensions:
+    - Sunnysideup\ExportAllFromModelAdmin\Extensions\ExportAllFromModelAdmin
