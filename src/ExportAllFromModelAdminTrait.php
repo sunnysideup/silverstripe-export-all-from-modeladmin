@@ -2,10 +2,6 @@
 
 namespace Sunnysideup\ExportAllFromModelAdmin;
 
-use SilverStripe\Admin\ModelAdmin;
-use SilverStripe\Forms\GridField\GridField;
-use SilverStripe\Forms\GridField\GridFieldAddNewButton;
-
 use SilverStripe\Core\Config\Config;
 
 use SilverStripe\Core\Injector\Injector;
@@ -28,7 +24,7 @@ trait ExportAllFromModelAdminTrait
         $singleton = Injector::inst()->get($className);
         if($singleton) {
             $exclude = Config::inst()->get($className, 'fields_to_exclude_from_export') ?:[];
-            $returnArray = [];
+            $returnArray = Config::inst()->get($className, 'fields_to_include_in_export') ?:[];
             $fieldLabels = $singleton->FieldLabels();
             $dbs = Config::inst()->get($className, 'db');
             foreach(array_keys($dbs) as $fieldName) {

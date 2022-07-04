@@ -52,6 +52,7 @@ class MyModelToExport extends DataObject
     private static $fields_to_include_in_export = [
         //...
         'MyDifficultRelation' => function($rel) {return $rel->getOtherStuff();},
+        'MyDifficultRelations' => function($rels) {return implode(',', $rels->getOtherStuff()->columnUnique();},
         'MyDate.Long' => 'Nice date for you',
         //...
     ];
