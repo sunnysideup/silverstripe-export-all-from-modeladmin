@@ -55,11 +55,11 @@ trait ExportAllFromModelAdminTrait
                 (Config::inst()->get($className, 'many_many') ? : []) +
                 (Config::inst()->get($className, 'belongs_many_many') ? : [])
             ;
-            $sep = Config::inst()->get(self::class, 'separator');
-            $sepReplacer = Config::inst()->get(self::class, 'separator_replacer');
             foreach(array_keys($rels) as $fieldName) {
                 if(! in_array($fieldName, $exclude)) {
                     $returnArray[$fieldName] = function($rels) {
+                        $sep = Config::inst()->get(self::class, 'separator');
+                        $sepReplacer = Config::inst()->get(self::class, 'separator_replacer');
                         $a = [];
                         foreach($rels as $rel) {
                             $a[] = str_replace($sep, $sepReplacer, $rel->getTitle());
@@ -72,6 +72,7 @@ trait ExportAllFromModelAdminTrait
             $returnArray = parent::getExportFields();
         }
         ksort($returnArray);
+
         return $returnArray;
     }
 }
