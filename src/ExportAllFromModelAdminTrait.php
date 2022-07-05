@@ -79,11 +79,11 @@ trait ExportAllFromModelAdminTrait
             if($singleton->hasMethod('getFieldsToIncludeInExport')) {
                 $returnArray += $singleton->getFieldsToIncludeInExport();
             }
-            if(Director::isDev() && isset($_GET['flush'])) {
-                foreach($returnArray as $fieldName => $title) {
-                    echo "\n'$fieldName',";
-                }
-            }
+            // if(Director::isDev()) {
+            //     foreach($returnArray as $fieldName => $title) {
+            //         echo "\n'$fieldName',";
+            //     }
+            // }
         } else {
             $returnArray = parent::getExportFields();
         }
