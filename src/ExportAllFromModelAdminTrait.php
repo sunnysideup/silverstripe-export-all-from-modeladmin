@@ -71,7 +71,7 @@ trait ExportAllFromModelAdminTrait
         } else {
             $returnArray = parent::getExportFields();
         }
-
-        return ksort($returnArray);
+        ksort($returnArray);
+        return $returnArray;
     }
 }
