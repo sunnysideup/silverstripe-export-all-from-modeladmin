@@ -20,7 +20,7 @@ add
 class MyModelToExport extends DataObject
 {
     //... some example fields listed here...
-    private static $fields_to_exclude_in_export = [
+    private static $fields_to_exclude_from_export = [
         //...
         'Priority',
         'MenuTitle',
