@@ -10,6 +10,8 @@ use SilverStripe\Assets\Image;
 
 use SilverStripe\Security\Member;
 
+use SilverStripe\Control\Director;
+
 
 trait ExportAllFromModelAdminTrait
 {
@@ -24,12 +26,18 @@ trait ExportAllFromModelAdminTrait
         $singleton = Injector::inst()->get($className);
         if($singleton) {
             $exclude = Config::inst()->get($className, 'fields_to_exclude_from_export') ?:[];
-            $returnArray = Config::inst()->get($className, 'fields_to_include_in_export') ?:[];
+            $returnArray = [];
             $fieldLabels = $singleton->FieldLabels();
             $dbs = Config::inst()->get($className, 'db');
             foreach(array_keys($dbs) as $fieldName) {
                 if(! in_array($fieldName, $exclude)) {
-                    $returnArray[$fieldName. '.Nice'] = $fieldLabels[$fieldName] ?? $fieldName;
+                    $returnArray[$fieldName] = $fieldLabels[$fieldName] ?? $fieldName;
+                }
+            }
+            $casting = Config::inst()->get($className, 'casting');
+            foreach(array_keys($casting) as $fieldName) {
+                if(! in_array($fieldName, $exclude)) {
+                    $returnArray[$fieldName] = $fieldLabels[$fieldName] ?? $fieldName;
                 }
             }
             $hasOne =
@@ -40,7 +48,7 @@ trait ExportAllFromModelAdminTrait
                 if(! in_array($fieldName, $exclude)) {
                     switch($type) {
                         case Image::class:
-                            $returnArray[$fieldName] = function($rel) {return $rel->Link();};
+                            $returnArray[$fieldName] = function($rel) {return Director::absoluteURL($rel->Link());};
                             break;
                         case Member::class:
                             $returnArray[$fieldName] = function($rel) {return $rel->Email;};

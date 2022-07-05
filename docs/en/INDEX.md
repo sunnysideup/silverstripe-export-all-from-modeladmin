@@ -40,21 +40,4 @@ class MyModelToExport extends DataObject
     ];
     //...
 }
-
 ```
-If there are any fields you would like to add:
-
-```php
-
-class MyModelToExport extends DataObject
-{
-    //... some example fields listed here...
-    private static $fields_to_include_in_export = [
-        //...
-        'MyDifficultRelation' => function($rel) {return $rel->getOtherStuff();},
-        'MyDifficultRelations' => function($rels) {return implode(',', $rels->getOtherStuff()->columnUnique();},
-        'MyDate.Long' => 'Nice date for you',
-        //...
-    ];
-    //...
-}
