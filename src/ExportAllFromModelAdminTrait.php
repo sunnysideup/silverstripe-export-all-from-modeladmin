@@ -76,6 +76,9 @@ trait ExportAllFromModelAdminTrait
                     };
                 }
             }
+            if($singleton->hasMethod('getFieldsToIncludeInExport')) {
+                $returnArray += $singleton->getFieldsToIncludeInExport();
+            }
         } else {
             $returnArray = parent::getExportFields();
         }

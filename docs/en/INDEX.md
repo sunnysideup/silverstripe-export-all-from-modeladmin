@@ -41,3 +41,23 @@ class MyModelToExport extends DataObject
     //...
 }
 ```
+
+To add fields:
+
+```php
+
+class MyModelToExport extends DataObject
+{
+    //... some example fields listed here...
+    public function getFieldsToIncludeInExport(): array
+    {
+        return [
+            'MyDBField1' => 'Better Name',
+            'MyDBField2' => 'Something else',
+            'MyHasOneRelation' => function($rel) {return $rel->AnotherTitle();},
+            'MyManyRelation' => function($rels) {return implode(',', $rels->columnUnique('Foo'));},
+        ]
+    }
+    //...
+}
+```
