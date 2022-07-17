@@ -47,6 +47,7 @@ trait ExportAllFromModelAdminTrait
             foreach($hasOne as $fieldName => $type) {
                 if(! in_array($fieldName, $exclude)) {
                     switch($type) {
+                        case File::class:
                         case Image::class:
                             $returnArray[$fieldName] = function($rel) {return Director::absoluteURL($rel->Link());};
                             break;
@@ -63,14 +64,24 @@ trait ExportAllFromModelAdminTrait
                 (Config::inst()->get($className, 'many_many') ? : []) +
                 (Config::inst()->get($className, 'belongs_many_many') ? : [])
             ;
-            foreach(array_keys($rels) as $fieldName) {
+            foreach($rels as $fieldName => $type) {
                 if(! in_array($fieldName, $exclude)) {
                     $returnArray[$fieldName] = function($rels) {
                         $sep = Config::inst()->get(self::class, 'separator');
                         $sepReplacer = Config::inst()->get(self::class, 'separator_replacer');
                         $a = [];
                         foreach($rels as $rel) {
-                            $a[] = str_replace($sep, $sepReplacer, $rel->getTitle());
+                            switch(get_class($rel)) {
+                                case File::class:
+                                case Image::class:
+                                    $a[] = str_replace($sep, $sepReplacer, Director::absoluteURL($rel->Link()));
+                                    break;
+                                case Member::class:
+                                    $a[] = str_replace($sep, $sepReplacer, $rel->Email);
+                                    break;
+                                default:
+                                    $a[] = str_replace($sep, $sepReplacer, $rel->getTitle());
+                            }
                         }
                         return implode(' '.$sep.' ', $a);
                     };
