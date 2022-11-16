@@ -6,6 +6,8 @@ use SilverStripe\Assets\Image;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Injector\Injector;
+
+use SilverStripe\Core\Environment;
 use SilverStripe\Security\Member;
 
 trait ExportAllFromModelAdminTrait
@@ -26,6 +28,8 @@ trait ExportAllFromModelAdminTrait
 
     public function getExportFields(): array
     {
+        //set to ten minutes
+        Environment::setTimeLimitMax(600);
         $singleton = Injector::inst()->get($this->modelClass);
         if ($singleton) {
             $this->exportFieldLabelsExclude1 = Config::inst()->get($this->modelClass, 'fields_to_exclude_from_export') ?: [];
