@@ -28,8 +28,13 @@ trait ExportAllFromModelAdminTrait
 
     public function getExportFields(): array
     {
+<<<<<<< HEAD
+        //allow up to ten minutes...
+        Environment::increaseTimeLimitTo(600);
+=======
         //set to ten minutes
         Environment::setTimeLimitMax(600);
+>>>>>>> 62294a4ce2453933bd129737c082a54e38f39328
         $singleton = Injector::inst()->get($this->modelClass);
         if ($singleton) {
             $this->exportFieldLabelsExclude1 = Config::inst()->get($this->modelClass, 'fields_to_exclude_from_export') ?: [];
