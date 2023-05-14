@@ -8,6 +8,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Security\Member;
+use SilverStripe\Security\Permission;
 
 trait ExportAllFromModelAdminTrait
 {
@@ -27,36 +28,40 @@ trait ExportAllFromModelAdminTrait
 
     public function getExportFields(): array
     {
-        //set to ten minutes
-        Environment::setTimeLimitMax(600);
-        $singleton = Injector::inst()->get($this->modelClass);
-        if ($singleton) {
-            $this->exportFieldLabelsExclude1 = Config::inst()->get($this->modelClass, 'fields_to_exclude_from_export') ?: [];
-            $this->exportFieldLabelsExclude2 = Config::inst()->get(self::class, 'fields_to_exclude_from_export_always') ?: self::$fields_to_exclude_from_export_always;
-            $this->exportFieldLabelsExclude = array_merge($this->exportFieldLabelsExclude1, $this->exportFieldLabelsExclude2);
-            $this->generateExportFieldLabels($singleton);
-            $this->exportFields = [];
-            $this->generateDbExportFields();
-            $this->generateCastingExportFields();
-            $this->generateHasOneExportFields();
-            $this->generateManyExportFields();
+        if(Permission::check('ADMIN')) {
+            //set to ten minutes
+            Environment::setTimeLimitMax(600);
+            $singleton = Injector::inst()->get($this->modelClass);
+            if ($singleton) {
+                $this->exportFieldLabelsExclude1 = Config::inst()->get($this->modelClass, 'fields_to_exclude_from_export') ?: [];
+                $this->exportFieldLabelsExclude2 = Config::inst()->get(self::class, 'fields_to_exclude_from_export_always') ?: self::$fields_to_exclude_from_export_always;
+                $this->exportFieldLabelsExclude = array_merge($this->exportFieldLabelsExclude1, $this->exportFieldLabelsExclude2);
+                $this->generateExportFieldLabels($singleton);
+                $this->exportFields = [];
+                $this->generateDbExportFields();
+                $this->generateCastingExportFields();
+                $this->generateHasOneExportFields();
+                $this->generateManyExportFields();
 
-            if ($singleton->hasMethod('getFieldsToIncludeInExport')) {
-                $this->exportFields += $singleton->getFieldsToIncludeInExport();
-            }
+                if ($singleton->hasMethod('getFieldsToIncludeInExport')) {
+                    $this->exportFields += $singleton->getFieldsToIncludeInExport();
+                }
 
             // if(Director::isDev()) {
             //     foreach($this->exportFields as $fieldName => $title) {
             //         echo "\n'$fieldName',";
             //     }
             // }
+            } else {
+                $this->exportFields = parent::getExportFields();
+            }
+
+            ksort($this->exportFields);
+
+            return $this->exportFields;
         } else {
-            $this->exportFields = parent::getExportFields();
+            return parent::getExportFields();
         }
-
-        ksort($this->exportFields);
-
-        return $this->exportFields;
     }
 
     protected function generateDbExportFields()
@@ -123,7 +128,7 @@ trait ExportAllFromModelAdminTrait
                     $sepReplacer = Config::inst()->get(self::class, 'export_separator_replacer');
                     $a = [];
                     foreach ($rels as $rel) {
-                        $a[] = str_replace($sep, $sepReplacer, $rel->getTitle());
+                        $a[] = str_replace((string) $sep, (string) $sepReplacer, (string) $rel->getTitle());
                     }
 
                     return implode(' ' . $sep . ' ', $a);
@@ -136,7 +141,7 @@ trait ExportAllFromModelAdminTrait
     {
         $singleton->FieldLabels();
         foreach ($this->exportFieldLabels as $key => $name) {
-            $this->exportFieldLabels[$key] = str_replace([',', '.'], '-', $name);
+            $this->exportFieldLabels[$key] = str_replace([',', '.'], '-', (string) $name);
         }
     }
 }
