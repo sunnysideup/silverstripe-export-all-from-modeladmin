@@ -5,9 +5,8 @@ namespace Sunnysideup\ExportAllFromModelAdmin;
 use SilverStripe\Assets\Image;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\Core\Injector\Injector;
-
 use SilverStripe\Core\Environment;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Security\Member;
 
 trait ExportAllFromModelAdminTrait
