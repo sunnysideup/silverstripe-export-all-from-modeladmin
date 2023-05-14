@@ -30,7 +30,7 @@ trait ExportAllFromModelAdminTrait
 
     public function getExportFields(): array
     {
-        if(Permission::check('ADMIN')) {
+        if (Permission::check('ADMIN')) {
             //set to ten minutes
             Environment::setTimeLimitMax(600);
             $singleton = Injector::inst()->get($this->modelClass);
@@ -49,7 +49,7 @@ trait ExportAllFromModelAdminTrait
                     $this->exportFields += $singleton->getFieldsToIncludeInExport();
                 }
 
-            // if(Director::isDev()) {
+                // if(Director::isDev()) {
             //     foreach($this->exportFields as $fieldName => $title) {
             //         echo "\n'$fieldName',";
             //     }
@@ -60,6 +60,7 @@ trait ExportAllFromModelAdminTrait
         } else {
             $this->exportFields = parent::getExportFields();
         }
+
         return $this->exportFields;
     }
 
