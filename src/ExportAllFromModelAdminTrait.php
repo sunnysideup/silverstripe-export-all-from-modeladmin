@@ -16,7 +16,9 @@ trait ExportAllFromModelAdminTrait
 
     protected $exportFieldLabels = [];
 
-    protected $exportFieldLabelsExclude = [];
+    protected $exportFieldLabelsExclude = [
+        'Version',
+    ];
 
     private static $fields_to_exclude_from_export_always = [
         'BackLinks',
@@ -55,13 +57,10 @@ trait ExportAllFromModelAdminTrait
             } else {
                 $this->exportFields = parent::getExportFields();
             }
-
-            ksort($this->exportFields);
-
-            return $this->exportFields;
         } else {
-            return parent::getExportFields();
+            $this->exportFields = parent::getExportFields();
         }
+        return $this->exportFields;
     }
 
     protected function generateDbExportFields()
