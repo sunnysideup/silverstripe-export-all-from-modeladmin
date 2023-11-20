@@ -133,7 +133,7 @@ trait ExportAllFromModelAdminTrait
     {
         $singleton->FieldLabels();
         foreach ($this->exportFieldLabels as $key => $name) {
-            $this->exportFieldLabels[$key] = str_replace([',', '.'], '-', (string) $name);
+            $this->exportFieldLabels[$key] = str_replace([',', '.', "\t", ";"], '-', (string) $name);
         }
     }
 }
