@@ -5,3 +5,7 @@
 # SilverStripe\Admin\ModelAdmin:
 #   extensions:
 #     - Sunnysideup\ExportAllFromModelAdmin\Extensions\ExportAllFromModelAdmin
+# Sunnysideup\ExportAllFromModelAdmin\ExportAllFromModelAdminTraitSettings:
+#  fields_to_exclude_from_export_always:
+#    - "ClassName"
+#    - "UUID"

@@ -20,14 +20,6 @@ trait ExportAllFromModelAdminTrait
         'Version',
     ];
 
-    private static $fields_to_exclude_from_export_always = [
-        'BackLinks',
-    ];
-
-    private static $export_separator = '|||';
-
-    private static $export_separator_replacer = '///';
-
     public function getExportFields(): array
     {
         if (Permission::check('ADMIN')) {
@@ -36,7 +28,7 @@ trait ExportAllFromModelAdminTrait
             $singleton = Injector::inst()->get($this->modelClass);
             if ($singleton) {
                 $this->exportFieldLabelsExclude1 = Config::inst()->get($this->modelClass, 'fields_to_exclude_from_export') ?: [];
-                $this->exportFieldLabelsExclude2 = Config::inst()->get(self::class, 'fields_to_exclude_from_export_always') ?: self::$fields_to_exclude_from_export_always;
+                $this->exportFieldLabelsExclude2 = Config::inst()->get(ExportAllFromModelAdminTraitSettings::class, 'fields_to_exclude_from_export_always') ?: [];
                 $this->exportFieldLabelsExclude = array_merge($this->exportFieldLabelsExclude1, $this->exportFieldLabelsExclude2);
                 $this->generateExportFieldLabels($singleton);
                 $this->exportFields = [];
@@ -49,7 +41,7 @@ trait ExportAllFromModelAdminTrait
                     $this->exportFields += $singleton->getFieldsToIncludeInExport();
                 }
 
-                // if(Director::isDev()) {
+            // if(Director::isDev()) {
             //     foreach($this->exportFields as $fieldName => $title) {
             //         echo "\n'$fieldName',";
             //     }
@@ -68,7 +60,7 @@ trait ExportAllFromModelAdminTrait
     {
         $dbs = Config::inst()->get($this->modelClass, 'db');
         foreach (array_keys($dbs) as $fieldName) {
-            if (! in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
+            if (!in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
                 $this->exportFields[$fieldName] = $this->exportFieldLabels[$fieldName] ?? $fieldName;
             }
         }
@@ -78,7 +70,7 @@ trait ExportAllFromModelAdminTrait
     {
         $casting = Config::inst()->get($this->modelClass, 'casting');
         foreach (array_keys($casting) as $fieldName) {
-            if (! in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
+            if (!in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
                 $this->exportFields[$fieldName] = $this->exportFieldLabels[$fieldName] ?? $fieldName;
             }
         }
@@ -91,11 +83,11 @@ trait ExportAllFromModelAdminTrait
             (Config::inst()->get($this->modelClass, 'belongs') ?: [])
         ;
         foreach ($hasOne as $fieldName => $type) {
-            if (! in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
+            if (!in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
                 switch ($type) {
                     case Image::class:
                         $this->exportFields[$fieldName] = function ($rel) {
-                            return Director::absoluteURL($rel->Link());
+                            return Director::absoluteURL((string)$rel->Link());
                         };
 
                         break;
@@ -122,10 +114,10 @@ trait ExportAllFromModelAdminTrait
             (Config::inst()->get($this->modelClass, 'belongs_many_many') ?: [])
         ;
         foreach (array_keys($rels) as $fieldName) {
-            if (! in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
+            if (!in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
                 $this->exportFields[$fieldName] = function ($rels) {
-                    $sep = Config::inst()->get(self::class, 'export_separator');
-                    $sepReplacer = Config::inst()->get(self::class, 'export_separator_replacer');
+                    $sep = Config::inst()->get(ExportAllFromModelAdminTraitSettings::class, 'export_separator');
+                    $sepReplacer = Config::inst()->get(ExportAllFromModelAdminTraitSettings::class, 'export_separator_replacer');
                     $a = [];
                     foreach ($rels as $rel) {
                         $a[] = str_replace((string) $sep, (string) $sepReplacer, (string) $rel->getTitle());
