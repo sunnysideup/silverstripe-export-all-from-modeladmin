@@ -9,3 +9,8 @@
 #  fields_to_exclude_from_export_always:
 #    - "ClassName"
 #    - "UUID"
+
+
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Forms\GridField\GridFieldExportButton:
+    class: Sunnysideup\ExportAllFromModelAdmin\ExportAllCustomButton

@@ -61,3 +61,30 @@ class MyModelToExport extends DataObject
     //...
 }
 ```
+
+
+## second option
+
+```php
+use Sunnysideup\ExportAllFromModelAdmin\ExportAllCustomButton;
+//...
+$gridField->getConfig()->addComponent(new ExportAllCustomButton('buttons-before-left'));
+//...
+
+```
+
+You can set all sorts of export custom fields for any class.
+
+```yml
+
+Sunnysideup\ExportAllFromModelAdmin\ExportAllCustomButton:
+  custom_exports:
+    SilverStripe\Security\Member:
+      Created: 'Created'
+      LastEdited: 'LastEdited'
+      Name:
+        - 'Salutation.Title'
+        - 'FirstName'
+        - 'Surname'
+
+```
