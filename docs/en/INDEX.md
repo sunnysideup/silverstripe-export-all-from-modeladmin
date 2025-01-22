@@ -61,3 +61,53 @@ class MyModelToExport extends DataObject
     //...
 }
 ```
+
+
+## second option
+
+```php
+<?php
+
+namespace Nedc\App\ModelAdmin;
+
+use Nedc\App\Dataextension\GroupExtension;
+use Nedc\App\Dataobjects\PrimaryHealthNetwork;
+use Nedc\App\Forms\GridFieldDeleteActionInNewColumn;
+use Nedc\App\Forms\GridFieldEditButtonInNewColumn;
+use Nedc\App\Forms\MemberEmailExportButton;
+use SilverStripe\Admin\ModelAdmin;
+use SilverStripe\Core\Injector\Injector;
+use SilverStripe\Forms\GridField\GridFieldAddNewButton;
+use SilverStripe\Forms\GridField\GridFieldDeleteAction;
+use SilverStripe\Forms\GridField\GridFieldEditButton;
+use SilverStripe\Security\Group;
+use SilverStripe\Security\Member;
+use Sunnysideup\ExportAllFromModelAdmin\ExportAllCustomButton;
+use Sunnysideup\Moodle\DoMoodleThings;
+use Sunnysideup\Moodle\Model\MoodleLog;
+
+/**
+ * Class \Nedc\App\ModelAdmin\QuickMemberManagement
+ *
+ */
+class MyE extends ModelAdmin
+{
+    $gridField->getConfig()->addComponent(new ExportAllCustomButton('buttons-before-left'));
+}
+
+
+```
+
+```yml
+
+Sunnysideup\ExportAllFromModelAdmin\ExportAllCustomButton:
+  custom_exports:
+    SilverStripe\Security\Member:
+      Created: 'Created'
+      LastEdited: 'LastEdited'
+      Name:
+        - 'Salutation.Title'
+        - 'FirstName'
+        - 'Surname'
+
+```
