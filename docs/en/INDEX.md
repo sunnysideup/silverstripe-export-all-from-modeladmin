@@ -84,6 +84,10 @@ You can set all sorts of export custom fields for any class.
 
 These will be added to any modeladmins or other gridfields where an export button is already present for the class. 
 
+The wildcard `*` means that all the fields are exported. 
+
+Fields are defined as `db`, `casted`, `has_one`, `has_many`, `many_many` and `belongs_many_many`
+
 ```yml
 
 Sunnysideup\ExportAllFromModelAdmin\ExportAllCustomButton:
