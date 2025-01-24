@@ -53,8 +53,6 @@ class AllFields
     {
         $dbs = Config::inst()->get($this->modelClass, 'db');
         foreach (array_keys($dbs) as $fieldName) {
-            echo $fieldName;
-            print_r($this->exportFieldLabelsExclude);
             if (!in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
                 $this->exportFields[$fieldName] = $this->exportFieldLabels[$fieldName] ?? $fieldName;
             }
