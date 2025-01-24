@@ -13,10 +13,12 @@ class MyModelAdmin extends ModelAdmin
 }
 
 ```
-### Excluding / adding fields to full set of data... 
+### Excluding / adding fields 
 
-If there are any fields that you would like to exclude from the export then you can
-add
+If there are any fields that you would like to add / exclude from the full set of data then you can
+use the following code: 
+
+#### To exclude
 
 ```php
 
@@ -45,7 +47,7 @@ class MyModelToExport extends DataObject
 }
 ```
 
-To add fields:
+#### To include
 
 ```php
 
