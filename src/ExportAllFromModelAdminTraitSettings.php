@@ -28,6 +28,8 @@ class ExportAllFromModelAdminTraitSettings
         'PasswordExpiryDays',
         'PasswordExpiry',
         'IPAddress',
+        'LinkTracking',
+        'FileTracking',
     ];
 
     private static $export_separator = '|||';

@@ -40,7 +40,7 @@ class AllFields
         $this->exportFields = [];
         $exclude1 = Config::inst()->get($this->modelClass, 'fields_to_exclude_from_export') ?: [];
         $exclude2 = Config::inst()->get(ExportAllFromModelAdminTraitSettings::class, 'fields_to_exclude_from_export_always') ?: [];
-        $this->exportFieldLabelsExclude = array_merge($exclude1, $exclude2);
+        $this->exportFieldLabelsExclude = array_merge($this->exportFieldLabelsExclude, $exclude1, $exclude2);
         $this->generateExportFieldLabels();
         $this->generateDbExportFields();
         $this->generateCastingExportFields();
@@ -53,6 +53,8 @@ class AllFields
     {
         $dbs = Config::inst()->get($this->modelClass, 'db');
         foreach (array_keys($dbs) as $fieldName) {
+            echo $fieldName;
+            print_r($this->exportFieldLabelsExclude);
             if (!in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
                 $this->exportFields[$fieldName] = $this->exportFieldLabels[$fieldName] ?? $fieldName;
             }
