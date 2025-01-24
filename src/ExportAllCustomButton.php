@@ -20,6 +20,7 @@ use SilverStripe\Forms\GridField\GridFieldPaginator;
 use SilverStripe\Forms\GridField\GridFieldSortableHeader;
 use SilverStripe\ORM\DB;
 use SilverStripe\Security\Member;
+use Sunnysideup\ExportAllFromModelAdmin\Api\AllFields;
 
 class ExportAllCustomButton extends GridFieldExportButton
 {
@@ -39,6 +40,7 @@ class ExportAllCustomButton extends GridFieldExportButton
      *     'MyManyManyRelation' => 'MyManyManyRelation.Title',
      *     'MyManyManyRelation Nice Title' => 'MyManyManyRelation2.Title',
      * ],
+     * MyOtherClass => '*',
      * ```
      * @var array
      */
@@ -74,8 +76,8 @@ class ExportAllCustomButton extends GridFieldExportButton
     {
         $modelClass = $gridField->getModelClass();
         $custom = Config::inst()->get(static::class, 'custom_exports');
-        if (empty($custom[$modelClass])) {
-            parent::generateExportFileData($gridField);
+        if (empty($custom[$modelClass]) || ! is_array($custom[$modelClass])) {
+            return parent::generateExportFileData($gridField);
         }
 
         // set basic variables
@@ -258,5 +260,22 @@ class ExportAllCustomButton extends GridFieldExportButton
                 }
             }
         }
+    }
+
+    /**
+     * Return the columns to export
+     *
+     * @param GridField $gridField
+     *
+     * @return array
+     */
+    protected function getExportColumnsForGridField(GridField $gridField)
+    {
+        $modelClass = $gridField->getModelClass();
+        $custom = Config::inst()->get(static::class, 'custom_exports');
+        if (isset($custom[$modelClass]) && $custom[$modelClass] === '*') {
+            $this->exportColumns = AllFields::create($modelClass)->getExportFields();
+        }
+        return parent::getExportColumnsForGridField($gridField);
     }
 }

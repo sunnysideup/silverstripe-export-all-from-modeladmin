@@ -79,6 +79,8 @@ You can set all sorts of export custom fields for any class.
 
 Sunnysideup\ExportAllFromModelAdmin\ExportAllCustomButton:
   custom_exports:
+    Foo\Bar\Class1: '*'
+    Foo\Bar\Class2: '*'
     SilverStripe\Security\Member:
       Created: 'Created'
       LastEdited: 'LastEdited'

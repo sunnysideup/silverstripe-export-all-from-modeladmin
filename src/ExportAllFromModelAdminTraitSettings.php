@@ -22,10 +22,15 @@ class ExportAllFromModelAdminTraitSettings
         'BackLinks',
         'UUID',
         'Password',
+        'PasswordSalt',
+        'Salt',
+        'PasswordEncryption',
+        'PasswordExpiryDays',
+        'PasswordExpiry',
+        'IPAddress',
     ];
 
     private static $export_separator = '|||';
 
     private static $export_separator_replacer = '///';
-
 }
