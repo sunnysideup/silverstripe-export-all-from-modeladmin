@@ -13,6 +13,7 @@ class MyModelAdmin extends ModelAdmin
 }
 
 ```
+### Excluding / adding fields to full set of data... 
 
 If there are any fields that you would like to exclude from the export then you can
 add
@@ -65,7 +66,7 @@ class MyModelToExport extends DataObject
 ```
 
 
-## second option
+## Adding Export Button to GridField
 
 ```php
 use Sunnysideup\ExportAllFromModelAdmin\ExportAllCustomButton;
@@ -76,6 +77,10 @@ $gridField->getConfig()->addComponent(new ExportAllCustomButton('buttons-before-
 ```
 
 You can set all sorts of export custom fields for any class.
+
+## Setting export all to specific classes
+
+These will be added to any modeladmins or other gridfields where an export button is already present for the class. 
 
 ```yml
 
