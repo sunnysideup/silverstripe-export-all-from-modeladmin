@@ -107,7 +107,7 @@ class ExportAllCustomButton extends GridFieldExportButton
 
         //Remove GridFieldPaginator as we're going to export the entire list.
         $gridField->getConfig()->removeComponentsByType(GridFieldPaginator::class);
-        $items = $gridField->getManipulatedList()->limit(null);
+        $items = $gridField->getManipulatedList()->limit(100);
 
         // set header
         $columnData = array_keys($this->exportColumns);
@@ -167,16 +167,18 @@ class ExportAllCustomButton extends GridFieldExportButton
     }
 
 
-    protected function fetchRelData($item, string $hasOneString): string
+    protected function fetchRelData($item, string $fieldName): string
     {
-        $hasOneArray = explode('.', $hasOneString);
-        $methodName = array_shift($hasOneArray);
-        $foreignField = $hasOneArray[0];
+        $fieldNameArray = explode('.', $fieldName);
+        $methodName = array_shift($fieldNameArray);
+        $foreignField = $fieldNameArray[0];
         $relType = $this->getRelationshipType($methodName);
         $className = $this->getRelClassName($methodName);
-        if (!isset($this->lookupTableCache[$className])) {
+        $classNameForArray = $this->classToSafeClass($className);
+        // die($methodName . '.' . $foreignField . '.' . $relType . '.' . $className);
+        if (!isset($this->lookupTableCache[$classNameForArray])) {
             $limit = Config::inst()->get(static::class, 'limit_to_lookups');
-            $this->lookupTableCache[$className] = $className::get()->limit($limit)->map('ID', $foreignField)->toArray();
+            $this->lookupTableCache[$classNameForArray] = $className::get()->limit($limit)->map('ID', $foreignField)->toArray();
         }
         if ($relType === 'has_one') {
             // Check if data is already cached
@@ -185,7 +187,7 @@ class ExportAllCustomButton extends GridFieldExportButton
             if ($id === 0) {
                 return '';
             }
-            return (string) ($this->lookupTableCache[$className][$id] ?? 'error' . $className::get()->byID($id)?->$foreignField);
+            return (string) ($this->lookupTableCache[$classNameForArray][$id] ?? 'error' . $className::get()->byID($id)?->$foreignField);
         } else {
             $result = [];
             // slow....
@@ -194,31 +196,37 @@ class ExportAllCustomButton extends GridFieldExportButton
                     $result[] = $val;
                 }
             } elseif ($relType === 'many_many') {
-                if (!isset($this->joinTableCache[$className])) {
+                if (!isset($this->joinTableCache[$classNameForArray])) {
+                    // relation object details
                     $rel = $item->$methodName();
-                    $this->joinTableCache[$className] = [
+                    $this->joinTableCache[$classNameForArray] = [
                         'table' => $rel->getJoinTable(),
                         'local' => $rel->getLocalKey(),
                         'foreign' => $rel->getForeignKey(),
                     ];
-                    $joinTable = $this->joinTableCache[$className]['table'];
-                    $localIDField = $this->joinTableCache[$className]['local'];
-                    $foreignIDField = $this->joinTableCache[$className]['foreign'];
+                    $joinTable = $this->joinTableCache[$classNameForArray]['table'];
+                    // NB!!!!!!!!!!!!!!
+                    // local and foreign are swapped here on purpose
+                    $fieldRelatingToModelExported = $this->joinTableCache[$classNameForArray]['foreign'];
+                    $fieldRelatingToLookupRelation = $this->joinTableCache[$classNameForArray]['local'];
+
                     $limit = Config::inst()->get(static::class, 'limit_to_join_tables');
-                    $list = DB::query('SELECT "' . $localIDField . '", "' . $foreignIDField . '" FROM "' . $joinTable . '" LIMIT ' . $limit);
+                    $list = DB::query('SELECT "' . $fieldRelatingToModelExported . '", "' . $fieldRelatingToLookupRelation . '" FROM "' . $joinTable . '" LIMIT ' . $limit);
                     foreach ($list as $row) {
-                        if (! isset($this->lookupTableCache[$joinTable][$row[$localIDField]])) {
-                            $this->lookupTableCache[$joinTable][$row[$localIDField]] = [];
+                        if (! isset($this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]])) {
+                            $this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]] = [];
                         }
-                        $this->lookupTableCache[$joinTable][$row[$localIDField]][] = $row[$foreignIDField];
+                        $this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]][] = $row[$fieldRelatingToLookupRelation];
                     }
                 } else {
-                    $joinTable = $this->joinTableCache[$className]['table'];
-                    $foreignIDField = $this->joinTableCache[$className]['foreign'];
+                    $joinTable = $this->joinTableCache[$classNameForArray]['table'];
+                    // NB!!!!!!!!!!!!!!
+                    // local and foreign are swapped here on purpose
+                    $fieldRelatingToLookupRelation = $this->joinTableCache[$classNameForArray]['local'];
                 }
                 if (! empty($this->lookupTableCache[$joinTable][$item->ID])) {
-                    foreach ($this->lookupTableCache[$joinTable][$item->ID] as $foreignID) {
-                        $result[] = $this->lookupTableCache[$className][$foreignID] ?? '';
+                    foreach ($this->lookupTableCache[$joinTable][$item->ID] as $fieldRelatingToLookupRelation) {
+                        $result[] = $this->lookupTableCache[$classNameForArray][$fieldRelatingToLookupRelation] ?? '';
                     }
                 }
             }
@@ -277,5 +285,10 @@ class ExportAllCustomButton extends GridFieldExportButton
             $this->exportColumns = AllFields::create($modelClass)->getExportFields();
         }
         return parent::getExportColumnsForGridField($gridField);
+    }
+
+    protected function classToSafeClass(string $class): string
+    {
+        return str_replace('\\', '-', $class);
     }
 }
