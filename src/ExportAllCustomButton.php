@@ -176,8 +176,8 @@ class ExportAllCustomButton extends GridFieldExportButton
         $className = $this->getRelClassName($methodName);
         $classNameForArray = $this->classToSafeClass($className);
         // die($methodName . '.' . $foreignField . '.' . $relType . '.' . $className);
+        $limit = Config::inst()->get(static::class, 'limit_to_lookups');
         if (!isset($this->lookupTableCache[$classNameForArray])) {
-            $limit = Config::inst()->get(static::class, 'limit_to_lookups');
             $this->lookupTableCache[$classNameForArray] = $className::get()->limit($limit)->map('ID', $foreignField)->toArray();
         }
         if ($relType === 'has_one') {
@@ -191,24 +191,51 @@ class ExportAllCustomButton extends GridFieldExportButton
         } else {
             $result = [];
             // slow....
+            $relName = $this->classToSafeClass($item->className) . '_' . $methodName;
             if ($relType === 'has_many') {
                 foreach ($item->$methodName()->column($foreignField) as $val) {
                     $result[] = $val;
                 }
-            } elseif ($relType === 'many_many') {
-                if (!isset($this->joinTableCache[$classNameForArray])) {
+                if (!isset($this->joinTableCache[$relName])) {
                     // relation object details
                     $rel = $item->$methodName();
-                    $this->joinTableCache[$classNameForArray] = [
-                        'table' => $rel->getJoinTable(),
-                        'local' => $rel->getLocalKey(),
-                        'foreign' => $rel->getForeignKey(),
+                    $this->joinTableCache[$relName] = [
+                        'foreign' => $rel->getForeignKey(), // e.g. MyExportRecordID
                     ];
-                    $joinTable = $this->joinTableCache[$classNameForArray]['table'];
                     // NB!!!!!!!!!!!!!!
                     // local and foreign are swapped here on purpose
-                    $fieldRelatingToModelExported = $this->joinTableCache[$classNameForArray]['foreign'];
-                    $fieldRelatingToLookupRelation = $this->joinTableCache[$classNameForArray]['local'];
+                    $fieldRelatingToModelExported = $this->joinTableCache[$relName]['foreign'];
+                    $list = $className::get()->limit($limit)->map('ID', $fieldRelatingToModelExported)->toArray();
+                    foreach ($list as $idOfLookup => $idOfModelExported) {
+                        if (! isset($this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]])) {
+                            $this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]] = [];
+                        }
+                        $this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]][] = $row[$fieldRelatingToLookupRelation];
+                    }
+                } else {
+                    // NB!!!!!!!!!!!!!!
+                    // local and foreign are swapped here on purpose
+                    $fieldRelatingToLookupRelation = $this->joinTableCache[$relName]['foreign'];
+                }
+                if (! empty($this->lookupTableCache[$joinTable][$item->ID])) {
+                    foreach ($this->lookupTableCache[$joinTable][$item->ID] as $fieldRelatingToLookupRelation) {
+                        $result[] = $this->lookupTableCache[$classNameForArray][$fieldRelatingToLookupRelation] ?? '';
+                    }
+                }
+            } elseif ($relType === 'many_many') {
+                if (!isset($this->joinTableCache[$relName])) {
+                    // relation object details
+                    $rel = $item->$methodName();
+                    $this->joinTableCache[$relName] = [
+                        'table' => $rel->getJoinTable(), //e.g. MyExportRecord_MyManyManyRelationshipNam
+                        'local' => $rel->getLocalKey(), // e.g. MyRelationID
+                        'foreign' => $rel->getForeignKey(), // e.g. MyExportRecordID
+                    ];
+                    $joinTable = $this->joinTableCache[$relName]['table'];
+                    // NB!!!!!!!!!!!!!!
+                    // local and foreign are swapped here on purpose
+                    $fieldRelatingToModelExported = $this->joinTableCache[$relName]['foreign']; // e.g. MyExportRecordID
+                    $fieldRelatingToLookupRelation = $this->joinTableCache[$relName]['local']; // e.g. MyRelationID
 
                     $limit = Config::inst()->get(static::class, 'limit_to_join_tables');
                     $list = DB::query('SELECT "' . $fieldRelatingToModelExported . '", "' . $fieldRelatingToLookupRelation . '" FROM "' . $joinTable . '" LIMIT ' . $limit);
@@ -219,10 +246,10 @@ class ExportAllCustomButton extends GridFieldExportButton
                         $this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]][] = $row[$fieldRelatingToLookupRelation];
                     }
                 } else {
-                    $joinTable = $this->joinTableCache[$classNameForArray]['table'];
+                    $joinTable = $this->joinTableCache[$relName]['table'];
                     // NB!!!!!!!!!!!!!!
                     // local and foreign are swapped here on purpose
-                    $fieldRelatingToLookupRelation = $this->joinTableCache[$classNameForArray]['local'];
+                    $fieldRelatingToLookupRelation = $this->joinTableCache[$relName]['local']; // e.g. MyRelationID
                 }
                 if (! empty($this->lookupTableCache[$joinTable][$item->ID])) {
                     foreach ($this->lookupTableCache[$joinTable][$item->ID] as $fieldRelatingToLookupRelation) {
