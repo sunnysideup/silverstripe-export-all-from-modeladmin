@@ -14,6 +14,7 @@ use Sunnysideup\ExportAllFromModelAdmin\Api\AllFields;
 trait ExportAllFromModelAdminTrait
 {
 
+    private array $exportFields = [];
 
     public function getExportFields(): array
     {
