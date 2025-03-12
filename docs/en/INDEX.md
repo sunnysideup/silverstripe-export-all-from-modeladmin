@@ -1,7 +1,11 @@
 # tl;dr
 
+There are a number of ways to increase the export capabilities from the CMS. 
 
 ## Add to specific Model Admin
+
+You will need to add the trait to any modeladmin:
+
 ```php
 
 use Sunnysideup\ExportAllFromModelAdmin\ExportAllFromModelAdminTrait;
@@ -13,10 +17,11 @@ class MyModelAdmin extends ModelAdmin
 }
 
 ```
-### Excluding / adding fields 
+
+### Excluding / adding fields
 
 If there are any fields that you would like to add / exclude from the full set of data then you can
-use the following code: 
+use the following code:
 
 #### To exclude
 
@@ -49,8 +54,9 @@ class MyModelToExport extends DataObject
 
 #### To include
 
-```php
+You can edit the specific class and add fields like this: 
 
+```php
 class MyModelToExport extends DataObject
 {
     //... some example fields listed here...
@@ -66,7 +72,6 @@ class MyModelToExport extends DataObject
     //...
 }
 ```
-
 
 ## Adding Export Button to GridField
 
