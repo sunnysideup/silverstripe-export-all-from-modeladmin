@@ -25,6 +25,12 @@ class AllFields
 
     protected array $exportFieldLabelsExclude = [];
 
+    private static array $db_defaults = [
+        'ID' => 'Int',
+        'Created' => 'DBDatetime',
+        'LastEdited' => 'DBDatetime',
+    ];
+
     public function __construct($modelClass, ?array $exportFieldLabelsExclude = [])
     {
         $this->modelClass = $modelClass;
@@ -51,7 +57,8 @@ class AllFields
 
     protected function generateDbExportFields()
     {
-        $dbs = Config::inst()->get($this->modelClass, 'db');
+        $dbs = Config::inst()->get(static::class, 'db_defaults') +
+            Config::inst()->get($this->modelClass, 'db');
         foreach (array_keys($dbs) as $fieldName) {
             if (!in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
                 $this->exportFields[$fieldName] = $this->exportFieldLabels[$fieldName] ?? $fieldName;
@@ -74,24 +81,35 @@ class AllFields
         $hasOne =
             (Config::inst()->get($this->modelClass, 'has_one') ?: []) +
             (Config::inst()->get($this->modelClass, 'belongs') ?: []);
-        foreach ($hasOne as $fieldName => $type) {
-            if (!in_array($fieldName, $this->exportFieldLabelsExclude, true)) {
+        foreach ($hasOne as $methodName => $type) {
+            if (!in_array($methodName, $this->exportFieldLabelsExclude, true)) {
+                $fieldName = $methodName . 'ID';
+                $this->exportFields[$fieldName] = $fieldName;
                 switch ($type) {
                     case Image::class:
-                        $this->exportFields[$fieldName] = function ($rel) {
-                            return Director::absoluteURL((string)$rel->Link());
+                        $this->exportFields[$methodName] = function ($rel) {
+                            if ($rel && $rel->exists()) {
+                                return Director::absoluteURL((string)$rel->Link());
+                            }
+                            return '(none)';
                         };
 
                         break;
                     case Member::class:
-                        $this->exportFields[$fieldName] = function ($rel) {
-                            return $rel->Email;
+                        $this->exportFields[$methodName] = function ($rel) {
+                            if ($rel && $rel->exists()) {
+                                return $rel->Email;
+                            }
+                            return '(none)';
                         };
 
                         break;
                     default:
-                        $this->exportFields[$fieldName] = function ($rel) {
-                            return $rel->getTitle();
+                        $this->exportFields[$methodName] = function ($rel) {
+                            if ($rel && $rel->exists()) {
+                                return $rel->getTitle();
+                            }
+                            return '(none)';
                         };
                 }
             }

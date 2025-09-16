@@ -49,11 +49,7 @@ class ExportAllCustomButton extends GridFieldExportButton
     private static int $limit_to_join_tables = 100000;
 
     private static int $max_chars_per_cell = 200;
-    private static $db_defaults = [
-        'ID' => 'Int',
-        'Created' => 'DBDatetime',
-        'LastEdited' => 'DBDatetime',
-    ];
+
 
     protected bool $hasCustomExport = false;
     protected array $dbCache = [];
@@ -63,6 +59,8 @@ class ExportAllCustomButton extends GridFieldExportButton
 
     protected array $joinTableCache = [];
     protected string $exportSeparator = ' ||| ';
+
+    protected string $modelClass = '';
 
 
     /**
@@ -74,15 +72,15 @@ class ExportAllCustomButton extends GridFieldExportButton
      */
     public function generateExportFileData($gridField): string
     {
-        $modelClass = $gridField->getModelClass();
+        $this->modelClass = $gridField->getModelClass();
         $custom = Config::inst()->get(static::class, 'custom_exports');
-        if (empty($custom[$modelClass]) || ! is_array($custom[$modelClass])) {
+        if (empty($custom[$this->modelClass]) || ! is_array($custom[$this->modelClass])) {
             return parent::generateExportFileData($gridField);
         }
 
         // set basic variables
         $this->hasCustomExport = true;
-        $this->exportColumns = $custom[$modelClass];
+        $this->exportColumns = $custom[$this->modelClass];
         $this->exportSeparator = ' ' . Config::inst()->get(ExportAllFromModelAdminTraitSettings::class, 'export_separator') . ' ';
         $this->buildRelCache();
 
@@ -180,14 +178,17 @@ class ExportAllCustomButton extends GridFieldExportButton
         if (!isset($this->lookupTableCache[$classNameForArray])) {
             $this->lookupTableCache[$classNameForArray] = $className::get()->limit($limit)->map('ID', $foreignField)->toArray();
         }
+        if (! $foreignField) {
+            throw new LogicException('no foreign field for ' . $fieldName . ' on ' . $item->ClassName . ' (' . $item->ID . ')');
+        }
         if ($relType === 'has_one') {
             // Check if data is already cached
             $fieldName = $methodName . 'ID';
             $id = (int) $item->$fieldName;
-            if ($id === 0) {
-                return '';
+            if ($id === 0 || $id === null) {
+                return 'no value set';
             }
-            return (string) ($this->lookupTableCache[$classNameForArray][$id] ?? 'error' . $className::get()->byID($id)?->$foreignField);
+            return (string) $item->$fieldName . ' => ' . ($this->lookupTableCache[$classNameForArray][$id] ?? 'error' . $className::get()->byID($id)?->$foreignField);
         } else {
             $relName = $this->classToSafeClass($item->ClassName) . '_' . $fieldName;
             $result = [];
@@ -200,7 +201,7 @@ class ExportAllCustomButton extends GridFieldExportButton
                     // relation object details
                     $rel = $item->$methodName();
                     $this->joinTableCache[$relName] = [
-                        'foreign' => $rel->getForeignKey(),// e.g. MyExportRecordID
+                        'foreign' => $rel->getForeignKey(), // e.g. MyExportRecordID
                     ];
                     // NB!!!!!!!!!!!!!!
                     // local and foreign are swapped here on purpose
@@ -232,7 +233,7 @@ class ExportAllCustomButton extends GridFieldExportButton
                     // NB!!!!!!!!!!!!!!
                     // local and foreign are swapped here on purpose
                     $fieldRelatingToModelExported = $this->joinTableCache[$relName]['foreign']; // e.g. MyExportRecordID
-                    $fieldRelatingToLookupRelation = $this->joinTableCache[$relName]['local'];// e.g. MyRelationID
+                    $fieldRelatingToLookupRelation = $this->joinTableCache[$relName]['local']; // e.g. MyRelationID
 
                     $limit = Config::inst()->get(static::class, 'limit_to_join_tables');
                     $list = DB::query('SELECT "' . $fieldRelatingToModelExported . '", "' . $fieldRelatingToLookupRelation . '" FROM "' . $joinTable . '" LIMIT ' . $limit);
@@ -260,8 +261,8 @@ class ExportAllCustomButton extends GridFieldExportButton
 
         if (count($this->dbCache) === 0) {
             $this->dbCache =
-                Config::inst()->get(static::class, 'db_defaults') +
-                Config::inst()->get(Member::class, 'db');
+                Config::inst()->get(AllFields::class, 'db_defaults') +
+                Config::inst()->get($this->modelClass, 'db');
         }
         return $this->dbCache[$fieldName];
     }
@@ -281,7 +282,7 @@ class ExportAllCustomButton extends GridFieldExportButton
         if (count($this->relCache) === 0) {
 
             foreach (['has_one', 'has_many', 'many_many'] as $relType) {
-                foreach (Config::inst()->get(Member::class, $relType) as $methodName => $className) {
+                foreach (Config::inst()->get($this->modelClass, $relType) as $methodName => $className) {
                     $this->relCache[$methodName] = [
                         'type' => $relType,
                         'class' => $className

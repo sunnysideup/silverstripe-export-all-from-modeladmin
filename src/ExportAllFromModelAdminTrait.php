@@ -23,16 +23,11 @@ trait ExportAllFromModelAdminTrait
             Environment::setTimeLimitMax(600);
             $singleton = Injector::inst()->get($this->modelClass);
             if ($singleton) {
-                $obj = AllFields::create($this->modelClass);
-                $this->exportFields = $obj->getExportFields();
+                $allFieldsProvider = AllFields::create($this->modelClass);
+                $this->exportFields = $allFieldsProvider->getExportFields();
                 if ($singleton->hasMethod('getFieldsToIncludeInExport')) {
                     $this->exportFields += $singleton->getFieldsToIncludeInExport();
                 }
-                // if(Director::isDev()) {
-                //     foreach($this->exportFields as $fieldName => $title) {
-                //         echo "\n'$fieldName',";
-                //     }
-                // }
             } else {
                 $this->exportFields = parent::getExportFields();
             }
