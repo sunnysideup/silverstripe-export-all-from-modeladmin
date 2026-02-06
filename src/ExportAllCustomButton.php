@@ -13,7 +13,6 @@ use Sunnysideup\ExportAllFromModelAdmin\Api\AllFields;
 
 class ExportAllCustomButton extends GridFieldExportButton
 {
-
     /**
      * Example:
      *
@@ -33,23 +32,26 @@ class ExportAllCustomButton extends GridFieldExportButton
      * ```
      */
     private static array $custom_exports = [];
+
     private static int $limit_to_lookups = 500;
+
     private static int $limit_to_join_tables = 100000;
 
     private static int $max_chars_per_cell = 200;
 
-
     protected bool $hasCustomExport = false;
+
     protected array $dbCache = [];
+
     protected array $relCache = [];
 
     protected array $lookupTableCache = [];
 
     protected array $joinTableCache = [];
+
     protected string $exportSeparator = ' ||| ';
 
     protected string $modelClass = '';
-
 
     /**
      * Generate export fields for CSV.
@@ -76,7 +78,7 @@ class ExportAllCustomButton extends GridFieldExportButton
         $csvWriter->setEnclosure($this->getCsvEnclosure());
         $csvWriter->setOutputBOM(Writer::BOM_UTF8);
 
-        if (!Config::inst()->get(static::class, 'xls_export_disabled')) {
+        if (! Config::inst()->get(static::class, 'xls_export_disabled')) {
             $csvWriter->addFormatter(function (array $row) {
                 foreach ($row as &$item) {
                     // [SS-2017-007] Sanitise XLS executable column values with a leading tab
@@ -87,7 +89,6 @@ class ExportAllCustomButton extends GridFieldExportButton
                 return $row;
             });
         }
-
 
         //Remove GridFieldPaginator as we're going to export the entire list.
         $gridField->getConfig()->removeComponentsByType(GridFieldPaginator::class);
@@ -107,9 +108,8 @@ class ExportAllCustomButton extends GridFieldExportButton
             return $csvWriter->toString();
         }
 
-        return (string)$csvWriter;
+        return (string) $csvWriter;
     }
-
 
     protected function getDataRowForExport($item)
     {
@@ -125,7 +125,7 @@ class ExportAllCustomButton extends GridFieldExportButton
 
     protected function getDataRowForExportInner($item, $fieldOrFieldArray): string
     {
-        if (!$fieldOrFieldArray) {
+        if (! $fieldOrFieldArray) {
             return '';
         }
         if (is_array($fieldOrFieldArray)) {
@@ -150,7 +150,6 @@ class ExportAllCustomButton extends GridFieldExportButton
         }
     }
 
-
     protected function fetchRelData($item, string $fieldName): string
     {
         $fieldNameArray = explode('.', $fieldName);
@@ -161,7 +160,7 @@ class ExportAllCustomButton extends GridFieldExportButton
         $classNameForArray = $this->classToSafeClass($className);
         // die($methodName . '.' . $foreignField . '.' . $relType . '.' . $className);
         $limit = Config::inst()->get(static::class, 'limit_to_lookups');
-        if (!isset($this->lookupTableCache[$classNameForArray])) {
+        if (! isset($this->lookupTableCache[$classNameForArray])) {
             $this->lookupTableCache[$classNameForArray] = $className::get()->limit($limit)->map('ID', $foreignField)->toArray();
         }
         if ($foreignField === '' || $foreignField === '0') {
@@ -183,7 +182,7 @@ class ExportAllCustomButton extends GridFieldExportButton
                 foreach ($item->$methodName()->column($foreignField) as $val) {
                     $result[] = $val;
                 }
-                if (!isset($this->joinTableCache[$relName])) {
+                if (! isset($this->joinTableCache[$relName])) {
                     // relation object details
                     $rel = $item->$methodName();
                     $this->joinTableCache[$relName] = [
@@ -207,7 +206,7 @@ class ExportAllCustomButton extends GridFieldExportButton
                     }
                 }
             } elseif ($relType === 'many_many') {
-                if (!isset($this->joinTableCache[$relName])) {
+                if (! isset($this->joinTableCache[$relName])) {
                     // relation object details
                     $rel = $item->$methodName();
                     $this->joinTableCache[$relName] = [
@@ -271,7 +270,7 @@ class ExportAllCustomButton extends GridFieldExportButton
                 foreach (Config::inst()->get($this->modelClass, $relType) as $methodName => $className) {
                     $this->relCache[$methodName] = [
                         'type' => $relType,
-                        'class' => $className
+                        'class' => $className,
                     ];
                 }
             }
@@ -280,7 +279,6 @@ class ExportAllCustomButton extends GridFieldExportButton
 
     /**
      * Return the columns to export
-     *
      *
      * @return array
      */
