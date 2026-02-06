@@ -31,7 +31,6 @@ class ExportAllCustomButton extends GridFieldExportButton
      * ],
      * MyOtherClass => '*',
      * ```
-     * @var array
      */
     private static array $custom_exports = [];
     private static int $limit_to_lookups = 500;
@@ -56,8 +55,6 @@ class ExportAllCustomButton extends GridFieldExportButton
      * Generate export fields for CSV.
      *
      * @param GridField $gridField
-     *
-     * @return string
      */
     public function generateExportFileData($gridField): string
     {
@@ -141,9 +138,9 @@ class ExportAllCustomButton extends GridFieldExportButton
                 $v .= $this->getDataRowForExportInner($item, $field);
                 $array[] = $v;
             }
-            return (string) implode($this->exportSeparator, array_filter($array));
+            return implode($this->exportSeparator, array_filter($array));
         } elseif (strpos($fieldOrFieldArray, '.') !== false) {
-            return (string) $this->fetchRelData($item, $fieldOrFieldArray);
+            return $this->fetchRelData($item, $fieldOrFieldArray);
         } else {
             $type = $this->fieldTypes($fieldOrFieldArray);
             if (strpos($type, 'Boolean') !== false) {
@@ -167,7 +164,7 @@ class ExportAllCustomButton extends GridFieldExportButton
         if (!isset($this->lookupTableCache[$classNameForArray])) {
             $this->lookupTableCache[$classNameForArray] = $className::get()->limit($limit)->map('ID', $foreignField)->toArray();
         }
-        if (! $foreignField) {
+        if ($foreignField === '' || $foreignField === '0') {
             throw new LogicException('no foreign field for ' . $fieldName . ' on ' . $item->ClassName . ' (' . $item->ID . ')');
         }
         if ($relType === 'has_one') {
@@ -177,7 +174,7 @@ class ExportAllCustomButton extends GridFieldExportButton
             if ($id === 0 || $id === null) {
                 return 'no value set';
             }
-            return (string) $item->$fieldName . ' => ' . ($this->lookupTableCache[$classNameForArray][$id] ?? 'error' . $className::get()->byID($id)?->$foreignField);
+            return $item->$fieldName . ' => ' . ($this->lookupTableCache[$classNameForArray][$id] ?? 'error' . $className::get()->byID($id)?->$foreignField);
         } else {
             $relName = $this->classToSafeClass($item->ClassName) . '_' . $fieldName;
             $result = [];
@@ -284,7 +281,6 @@ class ExportAllCustomButton extends GridFieldExportButton
     /**
      * Return the columns to export
      *
-     * @param GridField $gridField
      *
      * @return array
      */
