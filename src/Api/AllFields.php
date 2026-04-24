@@ -18,8 +18,6 @@ class AllFields
     use Configurable;
     use Extensible;
 
-    protected string $modelClass = '';
-
     protected array $exportFields = [];
 
     protected array $exportFieldLabels = [];
@@ -32,10 +30,8 @@ class AllFields
         'LastEdited' => 'DBDatetime',
     ];
 
-    public function __construct($modelClass, ?array $exportFieldLabelsExclude = [])
+    public function __construct(protected string $modelClass, ?array $exportFieldLabelsExclude = [])
     {
-        $this->modelClass = $modelClass;
-
         $this->exportFieldLabelsExclude = array_merge(
             $this->exportFieldLabelsExclude,
             $exportFieldLabelsExclude
@@ -92,6 +88,7 @@ class AllFields
                             if ($rel && $rel->exists()) {
                                 return Director::absoluteURL((string) $rel->Link());
                             }
+
                             return '(none)';
                         };
 
@@ -101,6 +98,7 @@ class AllFields
                             if ($rel && $rel->exists()) {
                                 return $rel->Email;
                             }
+
                             return '(none)';
                         };
 
@@ -110,6 +108,7 @@ class AllFields
                             if ($rel && $rel->exists()) {
                                 return $rel->getTitle();
                             }
+
                             return '(none)';
                         };
                 }

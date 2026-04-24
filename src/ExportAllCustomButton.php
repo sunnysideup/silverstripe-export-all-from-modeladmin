@@ -2,6 +2,7 @@
 
 namespace Sunnysideup\ExportAllFromModelAdmin;
 
+use SplTempFileObject;
 use League\Csv\Writer;
 use LogicException;
 use SilverStripe\Core\Config\Config;
@@ -73,7 +74,7 @@ class ExportAllCustomButton extends GridFieldExportButton
         $this->buildRelCache();
 
         // basics -- see parent::generateExportFileData
-        $csvWriter = Writer::createFromFileObject(new \SplTempFileObject());
+        $csvWriter = Writer::createFromFileObject(new SplTempFileObject());
         $csvWriter->setDelimiter($this->getCsvSeparator());
         $csvWriter->setEnclosure($this->getCsvEnclosure());
         $csvWriter->setOutputBOM(Writer::BOM_UTF8);
@@ -86,6 +87,7 @@ class ExportAllCustomButton extends GridFieldExportButton
                         $item = "\t" . $item;
                     }
                 }
+
                 return $row;
             });
         }
@@ -120,6 +122,7 @@ class ExportAllCustomButton extends GridFieldExportButton
             $v = substr($v, 0, $maxCharsPerCell);
             $array[] = $v;
         }
+
         return $array;
     }
 
@@ -128,6 +131,7 @@ class ExportAllCustomButton extends GridFieldExportButton
         if (! $fieldOrFieldArray) {
             return '';
         }
+
         if (is_array($fieldOrFieldArray)) {
             $array = [];
             foreach ($fieldOrFieldArray as $key => $field) {
@@ -135,17 +139,20 @@ class ExportAllCustomButton extends GridFieldExportButton
                 if ($key !== intval($key)) {
                     $v .= $key . ': ';
                 }
+
                 $v .= $this->getDataRowForExportInner($item, $field);
                 $array[] = $v;
             }
+
             return implode($this->exportSeparator, array_filter($array));
-        } elseif (strpos($fieldOrFieldArray, '.') !== false) {
+        } elseif (str_contains((string) $fieldOrFieldArray, '.')) {
             return $this->fetchRelData($item, $fieldOrFieldArray);
         } else {
             $type = $this->fieldTypes($fieldOrFieldArray);
-            if (strpos($type, 'Boolean') !== false) {
+            if (str_contains((string) $type, 'Boolean')) {
                 return (string) ($item->$fieldOrFieldArray ? 'Yes' : 'No');
             }
+
             return (string) $item->$fieldOrFieldArray;
         }
     }
@@ -163,9 +170,11 @@ class ExportAllCustomButton extends GridFieldExportButton
         if (! isset($this->lookupTableCache[$classNameForArray])) {
             $this->lookupTableCache[$classNameForArray] = $className::get()->limit($limit)->map('ID', $foreignField)->toArray();
         }
+
         if ($foreignField === '' || $foreignField === '0') {
             throw new LogicException('no foreign field for ' . $fieldName . ' on ' . $item->ClassName . ' (' . $item->ID . ')');
         }
+
         if ($relType === 'has_one') {
             // Check if data is already cached
             $fieldName = $methodName . 'ID';
@@ -173,6 +182,7 @@ class ExportAllCustomButton extends GridFieldExportButton
             if ($id === 0 || $id === null) {
                 return 'no value set';
             }
+
             return $item->$fieldName . ' => ' . ($this->lookupTableCache[$classNameForArray][$id] ?? 'error' . $className::get()->byID($id)?->$foreignField);
         } else {
             $relName = $this->classToSafeClass($item->ClassName) . '_' . $fieldName;
@@ -182,6 +192,7 @@ class ExportAllCustomButton extends GridFieldExportButton
                 foreach ($item->$methodName()->column($foreignField) as $val) {
                     $result[] = $val;
                 }
+
                 if (! isset($this->joinTableCache[$relName])) {
                     // relation object details
                     $rel = $item->$methodName();
@@ -197,9 +208,11 @@ class ExportAllCustomButton extends GridFieldExportButton
                         if (! isset($this->lookupTableCache[$relName][$idOfModelExported])) {
                             $this->lookupTableCache[$relName][$idOfModelExported] = [];
                         }
+
                         $this->lookupTableCache[$relName][$idOfModelExported][] = $idOfRelatedItem;
                     }
                 }
+
                 if (! empty($this->lookupTableCache[$relName][$item->ID])) {
                     foreach ($this->lookupTableCache[$relName][$item->ID] as $fieldRelatingToLookupRelation) {
                         $result[] = $this->lookupTableCache[$classNameForArray][$fieldRelatingToLookupRelation] ?? '';
@@ -226,17 +239,20 @@ class ExportAllCustomButton extends GridFieldExportButton
                         if (! isset($this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]])) {
                             $this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]] = [];
                         }
+
                         $this->lookupTableCache[$joinTable][$row[$fieldRelatingToModelExported]][] = $row[$fieldRelatingToLookupRelation];
                     }
                 } else {
                     $joinTable = $this->joinTableCache[$relName]['table'];
                 }
+
                 if (! empty($this->lookupTableCache[$joinTable][$item->ID])) {
                     foreach ($this->lookupTableCache[$joinTable][$item->ID] as $fieldRelatingToLookupRelation) {
                         $result[] = $this->lookupTableCache[$classNameForArray][$fieldRelatingToLookupRelation] ?? '';
                     }
                 }
             }
+
             return implode($this->exportSeparator, $result);
         }
     }
@@ -244,11 +260,12 @@ class ExportAllCustomButton extends GridFieldExportButton
     protected function fieldTypes($fieldName)
     {
 
-        if (count($this->dbCache) === 0) {
+        if ($this->dbCache === []) {
             $this->dbCache =
                 Config::inst()->get(AllFields::class, 'db_defaults') +
                 Config::inst()->get($this->modelClass, 'db');
         }
+
         return $this->dbCache[$fieldName];
     }
 
@@ -264,7 +281,7 @@ class ExportAllCustomButton extends GridFieldExportButton
 
     protected function buildRelCache()
     {
-        if (count($this->relCache) === 0) {
+        if ($this->relCache === []) {
 
             foreach (['has_one', 'has_many', 'many_many'] as $relType) {
                 foreach (Config::inst()->get($this->modelClass, $relType) as $methodName => $className) {
@@ -289,6 +306,7 @@ class ExportAllCustomButton extends GridFieldExportButton
         if (isset($custom[$modelClass]) && $custom[$modelClass] === '*') {
             $this->exportColumns = AllFields::create($modelClass)->getExportFields();
         }
+
         return parent::getExportColumnsForGridField($gridField);
     }
 
