@@ -2,6 +2,7 @@
 
 namespace Sunnysideup\ExportAllFromModelAdmin;
 
+use Override;
 use SplTempFileObject;
 use League\Csv\Writer;
 use LogicException;
@@ -59,6 +60,7 @@ class ExportAllCustomButton extends GridFieldExportButton
      *
      * @param GridField $gridField
      */
+    #[Override]
     public function generateExportFileData($gridField): string
     {
         $this->modelClass = $gridField->getModelClass();
@@ -299,6 +301,7 @@ class ExportAllCustomButton extends GridFieldExportButton
      *
      * @return array
      */
+    #[Override]
     protected function getExportColumnsForGridField(GridField $gridField)
     {
         $modelClass = $gridField->getModelClass();
