@@ -2,15 +2,15 @@
 
 namespace Sunnysideup\ExportAllFromModelAdmin;
 
-use Override;
-use SplTempFileObject;
 use League\Csv\Writer;
 use LogicException;
+use Override;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldExportButton;
 use SilverStripe\Forms\GridField\GridFieldPaginator;
 use SilverStripe\ORM\DB;
+use SplTempFileObject;
 use Sunnysideup\ExportAllFromModelAdmin\Api\AllFields;
 
 class ExportAllCustomButton extends GridFieldExportButton
@@ -76,10 +76,10 @@ class ExportAllCustomButton extends GridFieldExportButton
         $this->buildRelCache();
 
         // basics -- see parent::generateExportFileData
-        $csvWriter = Writer::createFromFileObject(new SplTempFileObject());
+        $csvWriter = Writer::from(new SplTempFileObject());
         $csvWriter->setDelimiter($this->getCsvSeparator());
         $csvWriter->setEnclosure($this->getCsvEnclosure());
-        $csvWriter->setOutputBOM(Writer::BOM_UTF8);
+        $csvWriter->setOutputBOM(\League\Csv\Bom::Utf8);
 
         if (! Config::inst()->get(static::class, 'xls_export_disabled')) {
             $csvWriter->addFormatter(function (array $row) {
