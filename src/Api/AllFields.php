@@ -22,7 +22,9 @@ class AllFields
 
     protected array $exportFieldLabels = [];
 
-    protected array $exportFieldLabelsExclude = [];
+    protected array $exportFieldLabelsExclude = [
+        'forTemplate',
+    ];
 
     private static array $db_defaults = [
         'ID' => 'Int',
