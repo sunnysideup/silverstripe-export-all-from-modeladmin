@@ -83,7 +83,8 @@ class ExportAllCustomButton extends GridFieldExportButton
             $csvWriter->addFormatter(function (array $row) {
                 foreach ($row as &$item) {
                     // [SS-2017-007] Sanitise XLS executable column values with a leading tab
-                    if (preg_match('/^[-@=+].*/', $item ?? '')) {
+                    // also catch a leading tab and carriage return, they can start a formula in some spreadsheet programs.
+                    if (preg_match('/^[-@=+\t\r].*/', (string) ($item ?? ''))) {
                         $item = "\t" . $item;
                     }
                 }
